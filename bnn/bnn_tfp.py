@@ -35,10 +35,12 @@ def plot_heldout_prediction(input_val,
         ax = fig.add_subplot(n, i + 1, 1)
         ax.plot(input_val, y_val, label='True data')
         ax.plot(input_val, mu_val, label='Predictive mean')
-        lower = mu_val - sigma_val
-        upper = mu_val + sigma_val
-        ax.fill_between(input_val, lower, upper, label='1 std')
+        lower = mu_val - 1.96 * sigma_val
+        upper = mu_val + 1.96 * sigma_val
+        ax.fill_between(
+            input_val, lower, upper, label='95% confidence interval')
 
+    plt.legend()
     fig.suptitle(title)
     fig.tight_layout()
 
@@ -123,9 +125,9 @@ batch_size = 50
 # X, y = build_toy_dataset(200, noise_std=0)
 # (features, target, handle, training_iterator,
 #  heldout_iterator) = build_input_pipeline(X, y, batch_size, np.floor(0.25 * len(X)))
-(features, target, handle,
- training_iterator, heldout_iterator) = build_input_val_pipeline(
-     X, y, Xtest, ytest, batch_size, batch_size)
+(features, target, handle, training_iterator,
+ heldout_iterator) = build_input_val_pipeline(X, y, Xtest, ytest, batch_size,
+                                              len(Xtest))
 
 sample_d = lambda d: tf.reduce_mean(d.sample(pred_samples), 0)
 
@@ -151,12 +153,14 @@ model = tf.keras.Sequential([
         bias_posterior_tensor_fn=sample_d),
 ])
 
-noise = tf.Variable(tf.fill([batch_size, 1], 1e-4))
+# noise = tf.Variable(tf.fill([batch_size, 1], 1e-4))
 
 preds = model(tf.cast(features, tf.float32))
-target_distribution = tfd.Normal(loc=preds, scale=noise)
+# target_distribution = tfd.Normal(loc=preds, scale=noise)
+# neg_log_likelihood = tf.reduce_mean(
+#     -target_distribution.log_prob(tf.cast(target, tf.float32)))
 neg_log_likelihood = tf.reduce_mean(
-    -target_distribution.log_prob(tf.cast(target, tf.float32)))
+    tf.losses.mean_squared_error(tf.cast(target, tf.float32), preds))
 # neg_log_likelihood = tf.reduce_mean(
 #     tf.pow(tf.cast(target, tf.float32) - preds, 2) / tf.pow(noise, 2))
 kl = sum(model.losses) / len(X)
@@ -177,5 +181,5 @@ with tf.Session() as sess:
         [loss_val, xval, yval, mu_val, sigma_val] = sess.run(
             [neg_log_likelihood, features, target, preds, noise],
             feed_dict={handle: heldout_handle})
-        print('{} training loss {} (noise level {}) | validation loss {} '.
-              format(epoch, loss_train, noise_level, loss_val))
+        print('{} training loss {} | validation loss {} '.format(
+            epoch, loss_train, loss_val))
