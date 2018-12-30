@@ -155,7 +155,7 @@ model = tf.keras.Sequential([
 
 # noise = tf.Variable(tf.fill([batch_size, 1], 1e-4))
 
-preds = model(tf.cast(features, tf.float32))
+preds = tf.reshape(model(tf.cast(features, tf.float32)), tf.shape(target))
 # target_distribution = tfd.Normal(loc=preds, scale=noise)
 # neg_log_likelihood = tf.reduce_mean(
 #     -target_distribution.log_prob(tf.cast(target, tf.float32)))
