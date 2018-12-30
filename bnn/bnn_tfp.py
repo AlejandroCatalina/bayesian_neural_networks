@@ -111,23 +111,37 @@ def build_input_val_pipeline(X, y, Xval, yval, batch_size, batch_heldout_size):
     return X, y, handle, training_iterator, heldout_iterator
 
 
+stv_train = np.load('../../sghmc_dgp/data/stv_train.npy')
+stv_test = np.load('../../sghmc_dgp/data/stv_test.npy')
+X, y = stv_train[:, 1:], stv_train[:, 0]
+Xtest, ytest = stv_test[:, 1:], stv_test[:, 0]
+
 tf.reset_default_graph()
 
 pred_samples = 20
-X, y = build_toy_dataset(200, noise_std=0)
-(features, target, handle, training_iterator,
- heldout_iterator) = build_input_pipeline(X, y, 50, np.floor(0.25 * len(X)))
+batch_size = batch_size
+# X, y = build_toy_dataset(200, noise_std=0)
+# (features, target, handle, training_iterator,
+#  heldout_iterator) = build_input_pipeline(X, y, batch_size, np.floor(0.25 * len(X)))
+(features, target, handle,
+ training_iterator, heldout_iterator) = build_input_pipeline(
+     X, y, Xtest, ytest, batch_size, batch_size)
 
 sample_d = lambda d: tf.reduce_mean(d.sample(pred_samples), 0)
 
 model = tf.keras.Sequential([
     tfp.layers.DenseFlipout(
-        20,
+        1200,
         activation=tf.nn.relu,
         kernel_posterior_tensor_fn=sample_d,
         bias_posterior_tensor_fn=sample_d),
     tfp.layers.DenseFlipout(
-        20,
+        120,
+        activation=tf.nn.relu,
+        kernel_posterior_tensor_fn=sample_d,
+        bias_posterior_tensor_fn=sample_d),
+    tfp.layers.DenseFlipout(
+        12,
         activation=tf.nn.relu,
         kernel_posterior_tensor_fn=sample_d,
         bias_posterior_tensor_fn=sample_d),
@@ -137,7 +151,7 @@ model = tf.keras.Sequential([
         bias_posterior_tensor_fn=sample_d),
 ])
 
-noise = tf.Variable(tf.fill([50, 1], 1e-4))
+noise = tf.Variable(tf.fill([batch_size, 1], 1e-4))
 
 preds = model(tf.cast(features, tf.float32))
 target_distribution = tfd.Normal(loc=preds, scale=noise)
@@ -147,7 +161,7 @@ neg_log_likelihood = tf.reduce_mean(
 #     tf.pow(tf.cast(target, tf.float32) - preds, 2) / tf.pow(noise, 2))
 kl = sum(model.losses) / len(X)
 loss = neg_log_likelihood + kl
-train_op = tf.train.AdamOptimizer(learning_rate=1e-2).minimize(loss)
+train_op = tf.train.AdamOptimizer(learning_rate=1e-3).minimize(loss)
 
 init_op = tf.group(tf.global_variables_initializer(),
                    tf.local_variables_initializer())
