@@ -119,7 +119,7 @@ Xtest, ytest = stv_test[:, 1:], stv_test[:, 0]
 tf.reset_default_graph()
 
 pred_samples = 20
-batch_size = batch_size
+batch_size = 50
 # X, y = build_toy_dataset(200, noise_std=0)
 # (features, target, handle, training_iterator,
 #  heldout_iterator) = build_input_pipeline(X, y, batch_size, np.floor(0.25 * len(X)))
