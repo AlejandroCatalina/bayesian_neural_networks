@@ -175,11 +175,10 @@ with tf.Session() as sess:
     train_handle = sess.run(training_iterator.string_handle())
     heldout_handle = sess.run(heldout_iterator.string_handle())
     for epoch in range(1000 * int(np.ceil(len(X) / batch_size))):
-        _, ytrain, preds_train, noise_level, loss_train = sess.run(
-            [train_op, target, preds, noise, loss],
-            feed_dict={handle: train_handle})
-        [loss_val, xval, yval, mu_val, sigma_val] = sess.run(
-            [neg_log_likelihood, features, target, preds, noise],
+        _, ytrain, preds_train, loss_train = sess.run(
+            [train_op, target, preds, loss], feed_dict={handle: train_handle})
+        [loss_val, xval, yval, mu_val] = sess.run(
+            [neg_log_likelihood, features, target, preds],
             feed_dict={handle: heldout_handle})
         print('{} training loss {} | validation loss {} '.format(
             epoch, loss_train, loss_val))
