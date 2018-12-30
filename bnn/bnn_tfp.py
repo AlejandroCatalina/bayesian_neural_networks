@@ -111,8 +111,8 @@ def build_input_val_pipeline(X, y, Xval, yval, batch_size, batch_heldout_size):
     return X, y, handle, training_iterator, heldout_iterator
 
 
-stv_train = np.load('../../sghmc_dgp/data/stv_train.npy')
-stv_test = np.load('../../sghmc_dgp/data/stv_test.npy')
+stv_train = np.load('stv_h_train.npy')
+stv_test = np.load('stv_h_test.npy')
 X, y = stv_train[:, 1:], stv_train[:, 0]
 Xtest, ytest = stv_test[:, 1:], stv_test[:, 0]
 
