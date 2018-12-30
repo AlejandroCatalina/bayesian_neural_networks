@@ -2,10 +2,10 @@ import tensorflow as tf
 import tensorflow_probability as tfp
 import numpy as np
 import numpy.random as npr
-import matplotlib
-matplotlib.use("Agg")
-from matplotlib import figure  # pylint: disable=g-import-not-at-top
-from matplotlib.backends import backend_agg
+# import matplotlib
+# matplotlib.use("Agg")
+# from matplotlib import figure  # pylint: disable=g-import-not-at-top
+# from matplotlib.backends import backend_agg
 import os
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
