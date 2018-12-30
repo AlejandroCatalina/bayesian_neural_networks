@@ -124,7 +124,7 @@ batch_size = 50
 # (features, target, handle, training_iterator,
 #  heldout_iterator) = build_input_pipeline(X, y, batch_size, np.floor(0.25 * len(X)))
 (features, target, handle,
- training_iterator, heldout_iterator) = build_input_pipeline(
+ training_iterator, heldout_iterator) = build_input_val_pipeline(
      X, y, Xtest, ytest, batch_size, batch_size)
 
 sample_d = lambda d: tf.reduce_mean(d.sample(pred_samples), 0)
