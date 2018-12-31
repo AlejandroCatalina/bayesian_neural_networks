@@ -39,19 +39,18 @@ model = make_mlp_net()
 
 # noise = tf.Variable(tf.fill([batch_size, 1], 1e-4))
 
-with graph.as_default():
-    preds = tf.reshape(model(tf.cast(features, tf.float32)), tf.shape(target))
-    # target_distribution = tfd.Normal(loc=preds, scale=noise)
-    # neg_log_likelihood = tf.reduce_mean(
-    #     -target_distribution.log_prob(tf.cast(target, tf.float32)))
-    neg_log_likelihood = tf.reduce_mean(
-        tf.losses.mean_squared_error(tf.cast(target, tf.float32), preds))
-    kl = sum(model.losses) / len(X)
-    loss = neg_log_likelihood + kl
-    train_op = tf.train.AdamOptimizer(learning_rate=1e-3).minimize(loss)
+preds = tf.reshape(model(tf.cast(features, tf.float32)), tf.shape(target))
+# target_distribution = tfd.Normal(loc=preds, scale=noise)
+# neg_log_likelihood = tf.reduce_mean(
+#     -target_distribution.log_prob(tf.cast(target, tf.float32)))
+neg_log_likelihood = tf.reduce_mean(
+    tf.losses.mean_squared_error(tf.cast(target, tf.float32), preds))
+kl = sum(model.losses) / len(X)
+loss = neg_log_likelihood + kl
+train_op = tf.train.AdamOptimizer(learning_rate=1e-3).minimize(loss)
 
-    init_op = tf.group(tf.global_variables_initializer(),
-                       tf.local_variables_initializer())
+init_op = tf.group(tf.global_variables_initializer(),
+                   tf.local_variables_initializer())
 with tf.Session() as sess:
     sess.run(init_op)
 
