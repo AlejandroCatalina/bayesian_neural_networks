@@ -27,17 +27,15 @@ ytest = (ytest - y_mean) / y_std
 
 tf.reset_default_graph()
 
-graph = tf.Graph()
-
 batch_size = 250
 # X, y = build_toy_dataset(200, noise_std=0)
 # (features, target, handle, training_iterator,
 #  heldout_iterator) = build_input_pipeline(X, y, batch_size, np.floor(0.25 * len(X)))
-(features, target, handle, training_iterator, heldout_iterator,
- graph) = build_input_val_pipeline(X, y, Xtest, ytest, batch_size,
-                                   len(Xtest), graph)
+(features, target, handle, training_iterator,
+ heldout_iterator) = build_input_val_pipeline(X, y, Xtest, ytest, batch_size,
+                                              len(Xtest))
 
-model, graph = make_mlp_net(graph)
+model = make_mlp_net()
 
 # noise = tf.Variable(tf.fill([batch_size, 1], 1e-4))
 
@@ -54,20 +52,19 @@ with graph.as_default():
 
     init_op = tf.group(tf.global_variables_initializer(),
                        tf.local_variables_initializer())
-    with tf.Session() as sess:
-        sess.run(init_op)
+with tf.Session() as sess:
+    sess.run(init_op)
 
-        train_handle = sess.run(training_iterator.string_handle())
-        heldout_handle = sess.run(heldout_iterator.string_handle())
-        for epoch in range(3000):
-            _, ytrain, preds_train, loss_train = sess.run(
-                [train_op, target, preds, loss],
-                feed_dict={handle: train_handle})
-            if not epoch % 30:
-                [loss_val, xval, yval, mu_val] = sess.run(
-                    [neg_log_likelihood, features, target, preds],
-                    feed_dict={handle: heldout_handle})
-                print('{} training mae {} | validation mae {}'.format(
-                    epoch,
-                    np.mean(np.abs(ytrain * y_std - preds_train * y_std)),
-                    np.mean(np.abs(yval * y_std - mu_val * y_std))))
+    train_handle = sess.run(training_iterator.string_handle())
+    heldout_handle = sess.run(heldout_iterator.string_handle())
+    for epoch in range(3000):
+        _, ytrain, preds_train, loss_train = sess.run(
+            [train_op, target, preds, loss], feed_dict={handle: train_handle})
+        if not epoch % 30:
+            [loss_val, xval, yval, mu_val] = sess.run(
+                [neg_log_likelihood, features, target, preds],
+                feed_dict={handle: heldout_handle})
+            print('{} training mae {} | validation mae {}'.format(
+                epoch,
+                np.mean(np.abs(ytrain * y_std - preds_train * y_std)),
+                np.mean(np.abs(yval * y_std - mu_val * y_std))))
