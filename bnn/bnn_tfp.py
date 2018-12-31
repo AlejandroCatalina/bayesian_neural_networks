@@ -180,5 +180,6 @@ with tf.Session() as sess:
         [loss_val, xval, yval, mu_val] = sess.run(
             [neg_log_likelihood, features, target, preds],
             feed_dict={handle: heldout_handle})
-        print('{} training loss {} | validation loss {} '.format(
-            epoch, loss_train, loss_val))
+        print('{} training loss {} | validation loss {} | validation mae {}'.
+              format(epoch, loss_train, loss_val,
+                     np.mean(np.abs(yval - mu_val))))
