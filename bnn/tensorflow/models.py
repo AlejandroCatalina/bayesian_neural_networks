@@ -102,3 +102,4 @@ def make_mlp_net():
             kernel_posterior_tensor_fn=sample_d,
             bias_posterior_tensor_fn=sample_d),
     ])
+    return model
