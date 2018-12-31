@@ -13,8 +13,8 @@ os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 
 tfd = tfp.distributions
 
-stv_train = np.load('stv_h_train.npy')
-stv_test = np.load('stv_h_test.npy')
+stv_train = np.load('../stv_h_train.npy')
+stv_test = np.load('../stv_h_test.npy')
 X, y = stv_train[:, 1:], stv_train[:, 0]
 
 # scale y
