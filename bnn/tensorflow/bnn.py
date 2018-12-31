@@ -4,6 +4,11 @@ import numpy as np
 import numpy.random as npr
 import os
 
+# local imports
+from data import build_toy_dataset
+from models import make_mlp_net, make_conv_net
+from input_pipeline import build_input_pipeline, build_input_val_pipeline
+
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 
 tfd = tfp.distributions
@@ -11,15 +16,17 @@ tfd = tfp.distributions
 stv_train = np.load('stv_h_train.npy')
 stv_test = np.load('stv_h_test.npy')
 X, y = stv_train[:, 1:], stv_train[:, 0]
+
+# scale y
 y_mean = np.mean(y)
 y_std = np.std(y)
 y = (y - y_mean) / y_std
+
 Xtest, ytest = stv_test[:, 1:], stv_test[:, 0]
 ytest = (ytest - y_mean) / y_std
 
 tf.reset_default_graph()
 
-pred_samples = 50
 batch_size = 250
 # X, y = build_toy_dataset(200, noise_std=0)
 # (features, target, handle, training_iterator,
@@ -28,95 +35,7 @@ batch_size = 250
  heldout_iterator) = build_input_val_pipeline(X, y, Xtest, ytest, batch_size,
                                               len(Xtest))
 
-sample_d = lambda d: tf.reduce_mean(d.sample(pred_samples), 0)
-
-# model = tf.keras.Sequential([
-#     tf.keras.layers.Reshape([8, 15, 10]),
-#     tfp.layers.Convolution2DFlipout(
-#         120,
-#         kernel_size=2,
-#         padding='SAME',
-#         activation=tf.nn.relu,
-#         kernel_posterior_tensor_fn=sample_d,
-#         bias_posterior_tensor_fn=sample_d),
-#     tf.keras.layers.BatchNormalization(),
-#     # tf.keras.layers.MaxPooling2D(pool_size=[2,2], strides=[2,2], padding='SAME'),
-#     tfp.layers.Convolution2DFlipout(
-#         60,
-#         kernel_size=3,
-#         padding='SAME',
-#         activation=tf.nn.relu,
-#         kernel_posterior_tensor_fn=sample_d,
-#         bias_posterior_tensor_fn=sample_d),
-#     tf.keras.layers.BatchNormalization(),
-#     tf.keras.layers.MaxPooling2D(pool_size=[2,2], strides=[2,2], padding='SAME'),
-#     tf.keras.layers.Flatten(),
-#     tfp.layers.DenseFlipout(
-#         10,
-#         activation=tf.nn.relu,
-#         kernel_posterior_tensor_fn=sample_d,
-#         bias_posterior_tensor_fn=sample_d),
-#     tf.keras.layers.BatchNormalization(),
-#     tfp.layers.DenseFlipout(
-#         10,
-#         activation=tf.nn.relu,
-#         kernel_posterior_tensor_fn=sample_d,
-#         bias_posterior_tensor_fn=sample_d),
-#     tf.keras.layers.BatchNormalization(),
-#     tfp.layers.DenseFlipout(
-#         10,
-#         activation=tf.nn.relu,
-#         kernel_posterior_tensor_fn=sample_d,
-#         bias_posterior_tensor_fn=sample_d),
-#     tf.keras.layers.BatchNormalization(),
-#     tfp.layers.DenseFlipout(
-#         10,
-#         activation=tf.nn.relu,
-#         kernel_posterior_tensor_fn=sample_d,
-#         bias_posterior_tensor_fn=sample_d),
-#     tf.keras.layers.BatchNormalization(),
-#     tfp.layers.DenseFlipout(
-#         1,
-#         kernel_posterior_tensor_fn=sample_d,
-#         bias_posterior_tensor_fn=sample_d),
-# ])
-
-model = tf.keras.Sequential([
-    tfp.layers.DenseFlipout(
-        10,
-        activation=tf.nn.relu,
-        kernel_posterior_tensor_fn=sample_d,
-        bias_posterior_tensor_fn=sample_d),
-    tf.keras.layers.BatchNormalization(),
-    tfp.layers.DenseFlipout(
-        10,
-        activation=tf.nn.relu,
-        kernel_posterior_tensor_fn=sample_d,
-        bias_posterior_tensor_fn=sample_d),
-    tf.keras.layers.BatchNormalization(),
-    tfp.layers.DenseFlipout(
-        10,
-        activation=tf.nn.relu,
-        kernel_posterior_tensor_fn=sample_d,
-        bias_posterior_tensor_fn=sample_d),
-    tf.keras.layers.BatchNormalization(),
-    tfp.layers.DenseFlipout(
-        10,
-        activation=tf.nn.relu,
-        kernel_posterior_tensor_fn=sample_d,
-        bias_posterior_tensor_fn=sample_d),
-    tf.keras.layers.BatchNormalization(),
-    tfp.layers.DenseFlipout(
-        10,
-        activation=tf.nn.relu,
-        kernel_posterior_tensor_fn=sample_d,
-        bias_posterior_tensor_fn=sample_d),
-    tf.keras.layers.BatchNormalization(),
-    tfp.layers.DenseFlipout(
-        1,
-        kernel_posterior_tensor_fn=sample_d,
-        bias_posterior_tensor_fn=sample_d),
-])
+model = make_mlp_net()
 
 # noise = tf.Variable(tf.fill([batch_size, 1], 1e-4))
 
