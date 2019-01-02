@@ -3,11 +3,16 @@ import tensorflow_probability as tfp
 
 tfd = tfp.distributions
 
-pred_samples = 50
+PRED_SAMPLES = 50
+
+TRAINING = True
 
 
 def sample_d(d):
-    return tf.reduce_mean(d.sample(pred_samples), 0)
+    """Sample function for weights and biases in bayesian neural net."""
+    if TRAINING:
+        return tf.reduce_mean(d.sample(PRED_SAMPLES), 0)
+    return d.sample()
 
 
 def make_conv_net():
