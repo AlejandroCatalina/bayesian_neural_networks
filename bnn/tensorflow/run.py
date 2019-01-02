@@ -5,6 +5,7 @@ import numpy.random as npr
 import os
 
 # local imports
+import models
 from data import build_toy_dataset
 from models import make_mlp_net, make_conv_net
 from input_pipeline import build_input_pipeline, build_input_val_pipeline
@@ -37,17 +38,18 @@ batch_size = 250
 
 model = make_mlp_net()
 
-# noise = tf.Variable(tf.fill([batch_size, 1], 1e-4))
-
 preds = tf.reshape(model(tf.cast(features, tf.float32)), tf.shape(target))
-# target_distribution = tfd.Normal(loc=preds, scale=noise)
-# neg_log_likelihood = tf.reduce_mean(
-#     -target_distribution.log_prob(tf.cast(target, tf.float32)))
 neg_log_likelihood = tf.reduce_mean(
     tf.losses.mean_squared_error(tf.cast(target, tf.float32), preds))
 kl = sum(model.losses) / len(X)
 loss = neg_log_likelihood + kl
 train_op = tf.train.AdamOptimizer(learning_rate=1e-3).minimize(loss)
+
+# predict operation
+predict_op = tf.stack([
+    tf.reshape(model(tf.cast(features, tf.float32)), tf.shape(target))
+    for _ in range(models.PRED_SAMPLES)
+])
 
 init_op = tf.group(tf.global_variables_initializer(),
                    tf.local_variables_initializer())
@@ -60,10 +62,12 @@ with tf.Session() as sess:
         _, ytrain, preds_train, loss_train = sess.run(
             [train_op, target, preds, loss], feed_dict={handle: train_handle})
         if not epoch % 30:
+            models.training = False
             [loss_val, xval, yval, mu_val] = sess.run(
-                [neg_log_likelihood, features, target, preds],
+                [neg_log_likelihood, features, target, predict_op],
                 feed_dict={handle: heldout_handle})
             print('{} training mae {} | validation mae {}'.format(
                 epoch,
                 np.mean(np.abs(ytrain * y_std - preds_train * y_std)),
                 np.mean(np.abs(yval * y_std - mu_val * y_std))))
+            models.training = True
