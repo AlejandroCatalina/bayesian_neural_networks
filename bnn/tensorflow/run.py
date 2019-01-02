@@ -62,7 +62,7 @@ with tf.Session() as sess:
         _, ytrain, preds_train, loss_train = sess.run(
             [train_op, target, preds, loss], feed_dict={handle: train_handle})
         if not epoch % 30:
-            models.training = False
+            models.TRAINING = False
             [loss_val, xval, yval, mu_val] = sess.run(
                 [neg_log_likelihood, features, target, predict_op],
                 feed_dict={handle: heldout_handle})
@@ -70,4 +70,4 @@ with tf.Session() as sess:
                 epoch,
                 np.mean(np.abs(ytrain * y_std - preds_train * y_std)),
                 np.mean(np.abs(yval * y_std - mu_val * y_std))))
-            models.training = True
+            models.TRAINING = True
