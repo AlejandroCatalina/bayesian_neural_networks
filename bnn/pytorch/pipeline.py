@@ -61,8 +61,8 @@ class BasePipeline(object):
 
     def fit(self):
         # set model to training mode
-        self.model.train()
         for epoch in range(1, self.n_epochs + 1):
+            self.model.train()
             train_loss = self._fit_epoch(epoch)
             self.losses['train'].append(train_loss)
             row = 'Epoch: {0:^3}  train: {1:^10.5f}'.format(
