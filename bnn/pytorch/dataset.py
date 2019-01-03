@@ -7,8 +7,8 @@ class Dataset(data.Dataset):
 
     def __init__(self, data, target):
         """Initialization"""
-        self.data = data
-        self.target = target
+        self.data = torch.Tensor(data).type(torch.FloatTensor)
+        self.target = torch.Tensor(target).type(torch.FloatTensor)
 
     def __len__(self):
         """Denotes the total number of samples"""

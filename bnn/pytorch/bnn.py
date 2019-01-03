@@ -97,19 +97,20 @@ class BNet(nn.Module):
                + self.l2.log_variational_posterior
 
     def elbo(self, input, target, samples=20):
-        outputs = torch.zeros(samples, self.batch_size, self.output_size)
+        outputs = []
         log_priors = torch.zeros(samples)
         log_variational_posteriors = torch.zeros(samples)
 
         # draw n_samples from the posterior (run n_samples forward passes)
         for i in range(samples):
-            outputs[i] = self(input, sample=True)
+            outputs.append(self(input, sample=True))
             log_priors[i] = self.log_prior()
             log_variational_posteriors[i] = self.log_variational_posterior()
 
         log_prior = log_priors.sum()
         log_variational_posterior = log_variational_posteriors.sum()
 
+        outputs = torch.stack(outputs)
         y_dist = Gaussian(outputs.mean(0), self.noise)
         # negative_log_likelihood = self.loss_function(
         #     outputs.mean(0), target, reduction='sum')
@@ -119,5 +120,4 @@ class BNet(nn.Module):
         loss = negative_log_likelihood
         kl = (log_variational_posterior - log_prior) / self.n_training
         loss += kl
-        print(negative_log_likelihood, kl)
         return loss, log_prior, log_variational_posterior, negative_log_likelihood
